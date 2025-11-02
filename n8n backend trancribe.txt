@@ -1,0 +1,448 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "live",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "file"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -944,
+        -96
+      ],
+      "id": "8541c992-35c3-4659-85dd-5bb9a1071ebd",
+      "name": "Webhook",
+      "webhookId": "fdfdcc21-cc8d-496e-96f1-d5cf1debf004"
+    },
+    {
+      "parameters": {
+        "tableId": "Transcripts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "text",
+              "fieldValue": "={{ $json.text }}"
+            },
+            {
+              "fieldId": "session_key",
+              "fieldValue": "={{ $('Webhook').item.json.body.sessionKey }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -96
+      ],
+      "id": "a977deea-a85d-4191-9231-b7df852eb4a6",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7KIYjIYPlWqZZ4fN",
+          "name": "questions project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        640,
+        -112
+      ],
+      "id": "d5cf7717-eb51-4e6a-8792-ae4c559a935c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.assemblyai.com/v2/transcript",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "51cb5b09b2b54585ab8504b88a38157c"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "audio_url",
+              "value": "={{ $json.upload_url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -576,
+        -96
+      ],
+      "id": "975286e7-8e69-4f40-ae67-af53dbe37465",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.assemblyai.com/v2/transcript/{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "51cb5b09b2b54585ab8504b88a38157c"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -576,
+        112
+      ],
+      "id": "7753c2bf-43c6-4f67-9025-47a538c7fda4",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        112
+      ],
+      "id": "ba665df8-362f-47c8-9ec2-d03982498747",
+      "name": "Wait",
+      "webhookId": "41e5c68a-ad70-408f-98ce-0acb447be26f"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a critical-thinking assistant for a university class. Your job is to analyze a short snippet of the professor's lecture and generate 2-3 insightful questions that a student might have.\n\n**Transcript Snippet:**\n\"{{ $json.text }}\"\n\n**Your Task:**\nBased ONLY on the text above, generate 2-3 high-quality, insightful questions.\n\n**CRITICAL RULES:**\n1.  **MUST BE RELEVANT:** Questions MUST be 100% related to the concepts *in the transcript snippet*.\n2.  **NO SIMPLE RECALL:** DO NOT ask simple definition questions (e.g., \"What is [topic]?\", \"Define [term]?\", \"When did [event] happen?\").\n3.  **ENCOURAGE THINKING:** INSTEAD, ask \"Why...?\", \"How...?\", or \"What are the implications of...?\" questions. Focus on connections, applications, or comparisons.\n4.  **NO LOGISTICS OR PERSONAL QUESTIONS:** DO NOT generate questions about class logistics (e.g., \"When is the test?\", \"Is this on the exam?\", \"What is the homework?\"), personal opinions, or topics outside the snippet.\n5.  **BE VARIED:** Ensure the 2-3 questions are distinct and different from each other.\n\n**OUTPUT FORMAT:**\nYou MUST return ONLY a valid JSON array of strings. Do not add any introductory text, markdown formatting (like ```json), or explanations.\n\n**Example of a GOOD output:**\n[\"How does [Concept A] from the snippet relate to [Concept B]?\", \"What are the real-world implications of [Idea X]?\", \"Why did the professor emphasize [Point Y]?\"]\n\n**Example of a BAD output (which you must avoid):**\nHere are some questions:\n```json\n[\"What is a mitochondria?\"]",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        -96
+      ],
+      "id": "d45bc540-2df1-44f9-be61-ed45cfb936e2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-09-2025",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -80
+      ],
+      "id": "34097145-f2c3-40de-b2f3-ed72a72779e4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "phYBYLReecEblbPs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  // 1. Get the AI's response string (e.g., [\"Q1\", \"Q2\"])\n  // (We fixed this earlier to use .output)\n  const jsonString = $input.first().json.output; \n  \n  // 2. Get the session_key from the \"Set\" node that ran earlier\n  // (NOTE: Make sure your Set node is named \"Set\". If you renamed it,\n  // you must change $node[\"Set\"] to $node[\"Your-Node-Name\"])\n  const sessionKey = $('Webhook').first().json.body.sessionKey; \n  \n  // 3. Turn the string into a real JavaScript array\n  const questions = JSON.parse(jsonString);\n  \n  // 4. Return an array of objects that *includes* the session_key\n  // This is the new, important part!\n  return questions.map(q => ({ \n    json: { \n      question_text: q,\n      session_key: sessionKey // We pass the key *into* the loop\n    } \n  }));\n\n} catch (e) {\n  // If the AI gives bad JSON, return an empty array\n  return []; \n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -96
+      ],
+      "id": "3e9938a6-8a47-44b0-9ab0-99c0acda7e5b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        384,
+        -96
+      ],
+      "id": "d1080035-2e67-4a70-a3cc-45e3340343bc",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "tableId": "questions from AI",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "question",
+              "fieldValue": "={{ $json.question_text }}"
+            },
+            {
+              "fieldId": "session_key",
+              "fieldValue": "={{ $('Webhook').item.json.body.sessionKey }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        384,
+        48
+      ],
+      "id": "ca826f74-fa14-484e-92e3-2e059314c5e1",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7KIYjIYPlWqZZ4fN",
+          "name": "questions project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Transcripting the audio to text",
+        "height": 384,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "50d7dde8-a412-4542-8195-4b9e38ca5f55",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### generating questions from the transcript",
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "80349b15-38e3-47c6-bce3-83882227992a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.assemblyai.com/v2/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "51cb5b09b2b54585ab8504b88a38157c"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "file0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -704,
+        -96
+      ],
+      "id": "230760f2-8689-413f-a698-43f24e8ae12c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "content": "### updating questions into the data base to display for the students.",
+        "height": 464,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        336,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "394fb7cb-b360-4b9e-935f-0cd42d1cbdf9",
+      "name": "Sticky Note2"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9eced16500a15f27592de6dfc47cefcb748d249bc3b507ee5f262d7922669226"
+  }
+}

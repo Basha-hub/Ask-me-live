@@ -1,0 +1,632 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "student",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "file"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -320,
+        -176
+      ],
+      "id": "63e14093-6e3a-486f-87b6-deb4c696d753",
+      "name": "Webhook",
+      "webhookId": "fdfdcc21-cc8d-496e-96f1-d5cf1debf004"
+    },
+    {
+      "parameters": {
+        "tableId": "questions",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "question_text",
+              "fieldValue": "={{ $('Webhook').item.json.body.question }}"
+            },
+            {
+              "fieldId": "session_key",
+              "fieldValue": "={{ $('Webhook').item.json.body.sessionKey }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -176
+      ],
+      "id": "544b0170-3cbe-4335-94a3-f354b58c01fd",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7KIYjIYPlWqZZ4fN",
+          "name": "questions project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful Teaching Assistant. Your goal is to answer the student's question clearly and concisely.\n\nYour task is to answer the student's question using the following steps:\n1.  **Prioritize the Lecture:** First, try to find the answer *only* using the provided \"LECTURE TRANSCRIPT\".\n2.  **Use General Knowledge (if needed):** If the answer is *not* found in the transcript, use your general academic knowledge to provide a helpful, relevant answer.\n3.  **Stay Relevant:** If the question is irrelevant (about homework, tests, weather, or personal opinions), you MUST respond with: \"I'm sorry, I can only answer questions related to the academic subject of the class.\"\n\n---\n**LECTURE TRANSCRIPT:**\n{{ $node[\"Code\"].json.fullTranscript }}\n---\n\n**STUDENT'S QUESTION:**\n{{ $node[\"Webhook\"].json.body.question }}\n---\n\nProvide your answer.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        496,
+        0
+      ],
+      "id": "cb331d70-9a9f-4954-8e7d-6c42367e0164",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\n\n// 2. Map over this array. For each \"item\", get its\n//    \"json\" property, then get the \"text\" field from that.\n//    Finally, join all the text strings together with a new line.\nconst fullTranscript = allItems.map(item => item.json.text).join(\" \\n \");\n\n// 3. Return the single, combined transcript.\nreturn { fullTranscript: fullTranscript };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "6137bf77-3760-4cfa-bd14-13d119964c65",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Transcripts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.sessionKey }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "cb37ec0e-7dd8-44d6-b82c-75f00b37f40e",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7KIYjIYPlWqZZ4fN",
+          "name": "questions project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        576,
+        0
+      ],
+      "id": "546e5d69-a3e7-4514-9992-968a5fe9212b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "phYBYLReecEblbPs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"Your question has been sent to the professor!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        -176
+      ],
+      "id": "587e42b4-6281-489f-8579-89f7ce1f5c87",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"message\": $json.text }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        848,
+        0
+      ],
+      "id": "06645025-dfe2-444d-ab05-e2df0adca7e3",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.askTarget }}",
+                    "rightValue": "custom_AI_filter",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "44e3cfa4-19cd-44a8-86af-a07c74bb552d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "custom"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "524fa6b4-3f73-4cf5-be40-12b27d0b2a42",
+                    "leftValue": "={{ $json.body.askTarget }}",
+                    "rightValue": "teacher",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Teacher"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6d5a60c7-914b-4d5d-9c94-907c890ee838",
+                    "leftValue": "={{ $json.body.askTarget }}",
+                    "rightValue": "AI",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AI"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -160,
+        -192
+      ],
+      "id": "86e8b418-ec81-468a-9ca1-ce127e6717fd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a class moderator. Your job is to analyze a student's question and classify it based on two criteria:\n1.  **Relevance:** Is it related to a typical academic subject?\n2.  **Politeness:** Is it genuine and respectful?\n\nClassify the student's question into one of three categories:\n- \"good\": The question is relevant to an academic topic and is polite.\n- \"irrelevant\": The question is off-topic (e.g., about homework, tests, personal life, weather).\n- \"disrespectful\": The question is rude, trolling, or inappropriate.\n\n---\n**STUDENT'S QUESTION:**\n{{ $('Webhook').item.json.body.question }}\n---\n\nRespond with ONLY the classification (\"good\", \"irrelevant\", or \"disrespectful\").",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        512,
+        -368
+      ],
+      "id": "9d8ca7c8-f6e6-4cdf-94e3-d578f8bcb73a",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\n\n// 2. Map over this array. For each \"item\", get its\n//    \"json\" property, then get the \"text\" field from that.\n//    Finally, join all the text strings together with a new line.\nconst fullTranscript = allItems.map(item => item.json.text).join(\" \\n \");\n\n// 3. Return the single, combined transcript.\nreturn { fullTranscript: fullTranscript };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -368
+      ],
+      "id": "94a72b30-e1e4-4dbd-935d-ae0a0b344c4b",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Transcripts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.sessionKey }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -368
+      ],
+      "id": "81e5b89b-e4c6-46ad-b6b4-17d2f5d1d594",
+      "name": "Get many rows1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7KIYjIYPlWqZZ4fN",
+          "name": "questions project"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -352
+      ],
+      "id": "56b1c49b-e937-4ce2-b8af-7ee5ba9e8a36",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "phYBYLReecEblbPs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"I'm not sure it is a relevant question to the topic that we are going on. Can you please provide more context or clarify what you mean?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1184,
+        -528
+      ],
+      "id": "e7c94c1d-c125-497d-afc5-65305cfeda65",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "irrelevant",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "843f802f-edb0-438a-81ec-ad63c8cc4bb9"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "irrelevant"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9fdb6930-0596-40c5-bffe-c30d9b1e974a",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "good",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "good"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "be5986e2-293f-4353-983d-a4674d68ac63",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "disrespectful",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "disrespectful"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        816,
+        -384
+      ],
+      "id": "4635362f-1907-47a6-9c63-dd6863cb810b",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"Question sent to the professor!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1184,
+        -368
+      ],
+      "id": "9e801ecb-4a82-4d45-a2a7-75f93bd04b2c",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"I'm sorry, I can only process questions that are respectful and relevant to the class subject.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1184,
+        -208
+      ],
+      "id": "fca49e9e-781f-4175-99a6-66e99029c3a8",
+      "name": "Respond to Webhook4"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get many rows1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9eced16500a15f27592de6dfc47cefcb748d249bc3b507ee5f262d7922669226"
+  }
+}
