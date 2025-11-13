@@ -1,172 +1,157 @@
-# Ask-me-live
-## Real-Time AI Classroom Q&A Platform
+# Ask-me-live: Real-Time AI Classroom Q&A Platform
 
-This project is a web-based application designed to increase student engagement and understanding during live lectures. It provides a "Host" panel for professors and a "Student" portal for attendees, bridging the gap between lecture content and student questions using real-time transcription and generative AI.
+![Project Type](https://img.shields.io/badge/Project_Type-Hackathon%20%7C%20EdTech-blue)
+![Status](https://img.shields.io/badge/Status-Completed%20(38h%20Hackathon)-success)
+![Language](https://img.shields.io/badge/Language-HTML%20%7C%20CSS%20%7C%20JS-yellow)
+![Technology](https://img.shields.io/badge/Technology-Serverless%20%7C%20GenAI-brightgreen)
+![Backend](https://img.shields.io/badge/Backend-n8n.io%20%7C%20Supabase-orange)
+![AI](https://img.shields.io/badge/AI-Gemini%20%7C%20AssemblyAI-purple)
 
-### Problem Statement
+## Overview
 
-In a typical lecture, many students are hesitant to interrupt the professor to ask a question. They might be shy, afraid their question is "dumb," or simply unable to formulate their question in time. This leads to a disconnect where students leave class confused and professors are unaware of which concepts were poorly understood.
+[cite_start]This project, built in 38 hours for the **Islander Hack 2025**[cite: 11], is a web-based application designed to increase student engagement and understanding during live lectures. It provides a "Host" panel for professors and a "Student" portal for attendees, bridging the gap between lecture content and student questions using real-time transcription and generative AI.
+
+### The Problem
+
+In a typical lecture, many students are hesitant to interrupt the professor to ask a question (due to shyness, fear of their question being "dumb," or timing). This leads to a disconnect where students leave class confused and professors are unaware of which concepts were poorly understood.
+
+### Key Features
 
 This platform solves that problem by:
+* **Providing Anonymity:** A "Student Portal" allows students to join a session anonymously and ask questions.
+* **Generating Contextual Questions:** A "Host Panel" transcribes the professor's lecture in real-time and uses AI to automatically generate insightful questions about the lecture.
+* **Creating an AI Safety Net:** Students can ask their own questions and receive answers from a **Gemini-powered RAG chatbot** that uses the lecture transcript as its knowledge base.
+* **Filtering Questions:** Custom questions are first filtered by an AI "moderator" to ensure they are polite and relevant before being sent to the professor.
 
-**Providing Anonymity**: A "Student Portal" allows students to join a session anonymously (using a session key) and ask questions.
+---
 
-**Generating Contextual Questions**: A "Host Panel" transcribes the professor's lecture in real-time. It then uses AI to automatically generate insightful questions about the lecture, which students can see.
+## Project Contents
 
-**Creating an AI Safety Net**: Students can ask their own questions (about the lecture or custom topics) and receive answers from an AI, which is trained to act as a helpful teaching assistant.
+| File Name | Description |
+| :--- | :--- |
+| `host.html` | The **Host (Professor) Panel** UI. Used to create sessions and transcribe lectures. |
+| `student.html` | The **Student Portal** UI. Used to join sessions, see AI-generated questions, and submit custom questions. |
+| `client.js` | The core **frontend JavaScript (ES6+)** that handles all `fetch` API calls to n8n/Supabase, and manages the UI logic. |
+| `n8n_workflows.json` | (Example) The exported JSON for all **n8n.io workflows**, which act as the serverless backend. |
+| `README.md` | This file, providing a comprehensive overview and setup guide. |
 
-**Filtering Questions**: Custom questions are first filtered by an AI "moderator" to ensure they are polite and relevant before being sent to the professor, reducing noise and keeping the session productive.
+---
 
-### Technologies Used
+## Setup and Execution
 
-This project is a modern "Jamstack" application that combines a static frontend with a serverless backend.
+This project is a "Jamstack" application and requires **no traditional backend server** to be installed, but it does require running n8n and a local web server for development.
 
-**Frontend**:
+### Prerequisites
 
-HTML5, CSS3, & JavaScript (ES6+): For the core structure, styling, and logic of the two web applications (Host and Student).
+* A modern **Web Browser** (e.g., Chrome, Firefox).
+* **VS Code** with the **"Live Server"** extension (critical for avoiding CORS errors).
+* An **n8n.io** instance (local or cloud).
+* A **Supabase** account (for the database).
+* API keys for **AssemblyAI** and **Google AI (Gemini)**.
 
-Tailwind CSS: For all styling, loaded via a CDN for rapid development.
+### Dependencies & Setup
 
-**Backend (Serverless)**:
+1.  **Supabase:**
+    * Create a new project.
+    * Create two tables: `transcripts` (to store lecture text) and `questions` (to store AI-generated and student questions).
+    * Note your **Project URL** and `anon` **public key**.
 
-n8n.io: The "brain" of the operation. This low-code/pro-code platform acts as our entire backend, handling all API calls, logic, and data processing.
+2.  **n8n.io:**
+    * Import the workflow(s) from `n8n_workflows.json`.
+    * Create credentials for Supabase, AssemblyAI, and Gemini and connect them to the appropriate nodes.
+    * **Activate** the workflows to get the **Production URLs** (do *not* use Test URLs).
 
-Supabase: The database for the application. It stores all transcripts, generated questions, and student-submitted questions.
+3.  **Frontend Code:**
+    * Update `client.js` with your Supabase URL, anon key, and all n8n Production Webhook URLs.
 
-Supabase Realtime: Used in our initial prototypes (and can be re-enabled) to push live data to the web clients without needing to refresh.
+### Running the Application
 
-**AI & APIs**:
+1.  **Clone the Repository:**
+    ```bash
+    git clone [https://github.com/](https://github.com/)[your-username]/Ask-me-live.git
+    cd Ask-me-live
+    ```
 
-AssemblyAI: Used for its high-accuracy, real-time speech-to-text transcription API.
+2.  **Run n8n with CORS Enabled:**
+    * To allow requests from your local server, you *must* start n8n with the correct environment variable.
+    ```bash
+    # On Windows (cmd)
+    set WEBHOOK_CORS_ALLOWED_ORIGINS=* && n8n
+    
+    # On macOS/Linux
+    WEBHOOK_CORS_ALLOWED_ORIGINS='*' n8n
+    ```
 
-Gemini (Google AI): Used as the generative AI for all language tasks:
+3.  **Run the Frontend:**
+    * Open the project folder in VS Code.
+    * Right-click `host.html` or `student.html` and select **"Open with Live Server"**.
+    * This will launch the app (e.g., at `http://127.0.0.1:5500`), satisfying browser CORS policies.
 
-Generating insightful questions from transcript snippets.
+> **Note:** Opening the `.html` files directly (via `file:///...`) **will not work**. All API requests will be blocked by browser security policies (CORS).
 
-Answering student questions as a RAG (Retrieval-Augmented Generation) chatbot.
+---
 
-Classifying and filtering custom-submitted student questions.
+## System Architecture
 
-### How It Works
+The system is split into two applications (Host and Student) that communicate via serverless n8n.io webhooks, with Supabase acting as the central database.
 
-The system is split into two main applications (Host and Student) that communicate through n8n and Supabase.
 
-**Host Application (Professor)**
 
-Create Session: The Host clicks "Create" to generate a unique session_key (e.g., CLASS-ABC123).
+### Host Application (Professor)
+1.  **Create Session:** Host clicks "Create" to generate a unique `session_key`.
+2.  **Start/Upload:** Host records audio or uploads a file.
+3.  **Send to n8n:** The browser sends the audio file + `session_key` to an n8n webhook.
+4.  **n8n Workflow:**
+    * Transcribes audio via **AssemblyAI**.
+    * Saves the transcript to **Supabase**.
+    * Sends the transcript to **Gemini** to generate questions.
+    * Saves the AI questions to **Supabase**.
+5.  **Fetch Data:** Host clicks "Refresh" to pull all transcripts and questions for their session from Supabase.
 
-Start/Upload: The Host can either:
+### Student Application
+1.  **Join Session:** Student enters the `session_key`.
+2.  **Fetch Questions:** The app pulls all questions from Supabase matching that key.
+3.  **Action Modal:** Clicking a question gives two options:
+    * **"Ask Teacher":** Sends the question to an n8n workflow that saves it for the professor.
+    * **"Ask AI":** Triggers a **RAG workflow**. n8n fetches the *entire* lecture transcript from Supabase, combines it with the question, and asks Gemini to answer it *only* using that context.
+4.  **Custom Question:** A student's custom question is sent to a "filter" workflow, where Gemini classifies it as relevant or not before it is saved.
 
-"Transcribe Live": Records a 10-second audio chunk.
+## Key Challenges & Debugging
 
-"Upload File": Selects a full, pre-recorded lecture file.
+A major part of this 38-hour hackathon was debugging real-world serverless and browser issues.
 
-Send to n8n: The browser sends the audio file and the session_key to the appropriate n8n webhook.
+* **The `file:///` vs. `http://` Problem:**
+    * **Symptom:** All `fetch` requests to n8n/Supabase were blocked by CORS.
+    * **Solution:** The app *must* be served from a local server. We used the VS Code "Live Server" extension (`http://127.0.0.1:5500`).
 
-n8n Workflow (Live or Upload):
+* **n8n CORS Error:**
+    * **Symptom:** Even on Live Server, requests to n8n were blocked.
+    * **Solution:** Restarted the n8n server with the `WEBHOOK_CORS_ALLOWED_ORIGINS=*` flag.
 
-Transcribes the audio using AssemblyAI.
+* **n8n 404 Not Found Error:**
+    * **Symptom:** The `client.js` file was getting a 404 error when sending audio.
+    * **Solution:** We were using the n8n "Test URL" (`/webhook-test/...`), which is temporary. We had to switch to the permanent **"Production URL"** and activate the workflow.
 
-Saves the transcript text to the Supabase transcripts table.
+* **n8n File + Text Uploads:**
+    * **Symptom:** The n8n Webhook received the audio file, but the `sessionKey` was missing.
+    * **Solution:** In the Webhook node's "Options," we had to set **"Binary Data" to `On`** (to get the file) and also set **"JSON Passthrough" to `On`** (to get the other text fields).
 
-Sends the transcript text to Gemini with a prompt to generate questions.
+* **n8n Loop Logic (The "Only One Question" Problem):**
+    * **Symptom:** The Gemini node produced 3 questions, but only 1 was saved to Supabase.
+    * **Solution:** The "Supabase Insert" node (inside the loop) couldn't access the `session_key` from the node before the loop. We fixed this by modifying the node *before* the loop to copy the `session_key` onto *every individual question object* it sent to the loop.
 
-Parses the AI's JSON response and saves each question as a new row in the Supabase questions table.
+## Future Plans
 
-Fetch Data: The Host can click "See/Refresh Transcript" or "See/Refresh Questions" to pull all data for their session from Supabase.
+* **Student Upvoting:** Add an `upvotes` column to the `questions` table and an n8n workflow to increment the count, allowing the host to sort by "most popular."
+* **Professor Dashboard:** Expand the host page to show a list of student-submitted questions with a "Mark as Answered" button that flips an `is_answered` boolean flag in Supabase.
+* **Learning Reports:** A "Generate Summary" button for the host to trigger an n8n workflow that uses Gemini to summarize the entire transcript, identify key topics, and list unanswered questions.
+* **Automated Exercises:** A workflow to generate multiple-choice quizzes or short-answer problems based on the lecture summary.
 
-**Student Application**
+---
 
-Join Session: The student enters the session_key (e.g., CLASS-ABC123). The app confirms the key is valid by checking the Supabase questions table.
+## 📧 Contact
 
-Fetch Questions: The student clicks "See/Refresh Questions," which fetches all questions from Supabase matching that session_key.
-
-Action Modal: Clicking a question gives two options:
-
-"Ask Teacher": Sends the question to an n8n workflow that saves it for the professor.
-
-"Ask AI": Sends the question to a RAG workflow. This workflow fetches the entire lecture transcript from Supabase, combines it with the question, and asks Gemini to answer it only using that context.
-
-Custom Question: A student can type their own question. It's sent to an n8n "filter" workflow that uses Gemini to classify it as "good" or "irrelevant." "Good" questions are saved to the database; "irrelevant" ones are rejected with a message.
-
-### Challenges Faced & Debugging
-
-This project involved solving many complex, real-world development challenges.
-
-Environment Hell: The file:/// vs. http:// Problem
-
-Symptom: Buttons were "dead." We found that opening index.html directly from the file system (file:///...) worked for UI, but all network requests (fetch) to n8n or Supabase were blocked by the browser's CORS policy.
-
-Solution: The app must be served from a local server. We used the VS Code "Live Server" extension, which serves the page over http://127.0.0.1:5500, satisfying browser security rules.
-
-The Infinite Refresh Loop
-
-Symptom: As soon as we used Live Server, the page was stuck in a non-stop refresh loop, making it impossible to click anything.
-
-Solution: The project was in a "dirty" folder (like the main User profile). Live Server was trying to "watch" thousands of system files (node_modules, NTUSER.DAT). We fixed this by moving the index.html and client.js files to a new, clean, dedicated project folder. This is the single most important setup step.
-
-n8n CORS Error
-
-Symptom: Even on Live Server, requests to n8n were blocked by CORS.
-
-Solution: We had to restart the n8n server with a special flag to allow requests from our frontend's origin: set WEBHOOK_CORS_ALLOWED_ORIGINS=* && n8n.
-
-n8n API Key & 401 Errors (AssemblyAI)
-
-Symptom: Our server-side calls were failing with 401 Unauthorized.
-
-Solution: This was a three-part problem:
-
-We were trying to use the new AssemblyAI v3 API key with the old v2 token endpoint.
-
-The v3 SDK expected expires_in_seconds, but we were sending expires_in.
-
-The free tier limit for tokens was 600 seconds, not 3600.
-
-n8n 404 Not Found Error
-
-Symptom: The client.js file was getting a 404 error when sending audio.
-
-Solution: We were using the n8n "Test URL" (/webhook-test/...) in our code. This URL is temporary and dies after 120 seconds. We had to switch to the permanent "Production URL" and activate the workflow.
-
-Supabase Case-Sensitivity
-
-Symptom: The app was getting a 404 error: Column 'questions.question' does not exist.
-
-Solution: We had created a table named questions from AI in Supabase, but our code was looking for questions. We also had a column named question but the code looked for question_text. We had to make the code's from() and select() statements exactly match the database schema.
-
-n8n File + Text Uploads
-
-Symptom: The n8n Webhook received the audio file, but the sessionKey was missing.
-
-Solution: In the Webhook node's "Options," we had to set "Binary Data" to On (to get the file) and also set "JSON Passthrough" to On (to get all the other text fields).
-
-n8n Loop Logic (The "Only One Question" Problem)
-
-Symptom: The Gemini node produced 3 questions, but only 1 was saved to Supabase.
-
-Solution: The "Supabase Insert" node (inside the loop) couldn't reach back to the "Set" node to get the session_key on every run. We fixed this by modifying the "Code" node to copy the session_key onto every question object it sent to the loop.
-
-n8n Response Errors (Invalid JSON)
-
-Symptom: The "Ask AI" modal in the browser was failing. The n8n "Respond to Webhook" node showed an Invalid JSON error.
-
-Solution: The AI's text response contained line breaks and quotes, which breaks JSON. We fixed this by changing the "Respond to Webhook" node's "Respond With" setting from JSON to Expression and using { "message": $json.text }. This lets n8n safely format the string.
-
-### Future Plans
-
-This project has a strong foundation for many powerful features:
-
-**Student Upvoting**: Add an upvotes (integer) column to the questions table. Students can click an "upvote" button, which calls an n8n workflow to increment the count for that question's row. The host can then sort questions by "most popular."
-
-**Professor Dashboard**: The host page can be expanded to show a list of student-submitted questions. The host can click a button to "Mark as Answered," which flips an is_answered (boolean) flag in the database, changing its color on the student's screen.
-
-**Learning Reports**: At the end of a session, the host could click a "Generate Summary" button. This would trigger an n8n workflow to:
-
-Fetch the entire transcript from Supabase.
-
-**Send it to Gemini with a prompt like**: "Summarize this lecture, identify the 3 key topics, and list all unanswered questions."
-
-This summary could be saved and shown to students.
-
-**Automated Exercises**: A similar workflow could generate multiple-choice quizzes or short-answer problems based on the lecture summary and AI-generated questions, providing students with a "study guide" after class.
+**Vigneshwar Lokoji**
+* [LinkedIn](https://www.linkedin.com/in/[your-linkedin-username]/)
+* [GitHub](https://github.com/[your-github-username])
+* *Feel free to connect or ask questions about the project or code.*
