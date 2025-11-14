@@ -156,5 +156,5 @@ A major part of this 38-hour hackathon was debugging real-world serverless and b
 
 **Vigneshwar Lokoji**
 * [LinkedIn](www.linkedin.com/in/vigneshwar-lokoji/)
-* [GitHub]((https://github.com/Basha-hub))
+* [GitHub](https://github.com/Basha-hub)
 * *Feel free to connect or ask questions about the project or code.*
