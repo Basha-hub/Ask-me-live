@@ -70,7 +70,8 @@ This project is a "Jamstack" application and requires **no traditional backend s
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/](https://github.com/)[your-username]/Ask-me-live.git
+    git clone [https://github.com/Basha-hub
+    /Ask-me-live.git
     cd Ask-me-live
     ```
 
