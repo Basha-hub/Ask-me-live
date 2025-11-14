@@ -3,13 +3,13 @@
 ![Project Type](https://img.shields.io/badge/Project_Type-Hackathon%20%7C%20EdTech-blue)
 ![Status](https://img.shields.io/badge/Status-Completed%20(38h%20Hackathon)-success)
 ![Language](https://img.shields.io/badge/Language-HTML%20%7C%20CSS%20%7C%20JS-yellow)
-![Technology](https://img.shields.io/badge/Technology-Serverless%20%7C%20GenAI-brightgreen)
+![Styling](https://img.shields.io/badge/Styling-Tailwind%20CSS-06B6D4?style=flat&logo=tailwindcss)
 ![Backend](https://img.shields.io/badge/Backend-n8n.io%20%7C%20Supabase-orange)
 ![AI](https://img.shields.io/badge/AI-Gemini%20%7C%20AssemblyAI-purple)
 
 ## Overview
 
-[cite_start]This project, built in 38 hours for the **Islander Hack 2025**[cite: 11], is a web-based application designed to increase student engagement and understanding during live lectures. It provides a "Host" panel for professors and a "Student" portal for attendees, bridging the gap between lecture content and student questions using real-time transcription and generative AI.
+This project, built in 38 hours for the **Islander Hack 2025**, is a web-based application designed to increase student engagement and understanding during live lectures. It provides a "Host" panel for professors and a "Student" portal for attendees, bridging the gap between lecture content and student questions using real-time transcription and generative AI.
 
 ### The Problem
 
@@ -29,11 +29,13 @@ This platform solves that problem by:
 
 | File Name | Description |
 | :--- | :--- |
-| `host.html` | The **Host (Professor) Panel** UI. Used to create sessions and transcribe lectures. |
-| `student.html` | The **Student Portal** UI. Used to join sessions, see AI-generated questions, and submit custom questions. |
-| `client.js` | The core **frontend JavaScript (ES6+)** that handles all `fetch` API calls to n8n/Supabase, and manages the UI logic. |
-| `n8n_workflows.json` | (Example) The exported JSON for all **n8n.io workflows**, which act as the serverless backend. |
-| `README.md` | This file, providing a comprehensive overview and setup guide. |
+| `index.html` | The **Host (Professor) Panel** UI. |
+| `client.js` | The **Client-Side JavaScript** for the Host panel. |
+| `student.html` | The **Student Portal** UI for joining sessions. |
+| `student.js` | The **Client-Side JavaScript** for the Student portal. |
+| `n8n_backend_trancribe.txt` | The `n8n` workflow (backend) for transcribing audio. |
+| `n8n_students_question...txt` | The `n8n` workflow (backend) for handling student questions. |
+| `Demo.mp4` | A video demonstration of the project. |
 
 ---
 
@@ -152,6 +154,6 @@ A major part of this 38-hour hackathon was debugging real-world serverless and b
 ## 📧 Contact
 
 **Vigneshwar Lokoji**
-* [LinkedIn](https://www.linkedin.com/in/[your-linkedin-username]/)
-* [GitHub](https://github.com/[your-github-username])
+* [LinkedIn](www.linkedin.com/in/vigneshwar-lokoji/)
+* [GitHub]((https://github.com/Basha-hub))
 * *Feel free to connect or ask questions about the project or code.*
